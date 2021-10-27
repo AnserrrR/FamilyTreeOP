@@ -179,6 +179,26 @@
               <string>Германия</string>
              </property>
             </item>
+            <item>
+             <property name="text">
+              <string>США</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Израиль</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Япония</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>Кипр</string>
+             </property>
+            </item>
            </widget>
           </item>
           <item row="7" column="1">

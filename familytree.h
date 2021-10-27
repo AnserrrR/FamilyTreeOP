@@ -46,17 +46,19 @@ public:
     FamilyTree();
 
     //TO DO: Сделать перегрузку операторов сравнения, присвоения ...
+    bool operator<=(const FamilyTree& other) const;
+    void operator=(const FamilyTree& other);
 
     bool isCreated = false; //После того как разделю save на save и create можно убрать
 
-    const QString& getFIO();
-    const Parents& getParents();
-    const QDate& getDateOfBirth();
-    const bool& isAlive();
-    const QDate& getDateOfDeath();
-    const Gender& getGender();
-    const Country& getCitizenship();
-    const bool& WasInMilitaryService();
+    const QString& getFIO() const;
+    const Parents& getParents() const;
+    const QDate& getDateOfBirth() const;
+    const bool& isAlive() const;
+    const QDate& getDateOfDeath() const;
+    const Gender& getGender() const;
+    const Country& getCitizenship() const;
+    const bool& WasInMilitaryService() const;
     QList<FamilyTree*>& getChilds();
 
     void setFIO(QString);

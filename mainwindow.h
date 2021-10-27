@@ -20,14 +20,18 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void _save(int i);
-    void _show(int i);
+
+    bool _save(int recordIndex, bool newRecord = false);
+    int searchInsertPos(const FamilyTree& curRec);
     FamilyTree* getRecordsByFio(const QString& fio);
+    bool correctRecordCheck(int recordIndex, const FamilyTree& tmpRec, bool newRecord = false);
+    void updateButtonsActivity();
+    void addRecInListWidget(int insertPos);
 
 private slots:
 
     void save_record();
-    void show_record();
+    void show_record(int i);
     void create_record();
     void delete_record();
 
