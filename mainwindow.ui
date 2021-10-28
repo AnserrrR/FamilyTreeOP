@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>883</width>
-    <height>449</height>
+    <width>907</width>
+    <height>415</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -23,14 +23,14 @@
    <bool>false</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_5">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
        <widget class="QListWidget" name="recordsListWidget">
         <property name="minimumSize">
          <size>
-          <width>500</width>
+          <width>600</width>
           <height>0</height>
          </size>
         </property>
@@ -253,8 +253,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>883</width>
-     <height>25</height>
+     <width>907</width>
+     <height>20</height>
     </rect>
    </property>
   </widget>

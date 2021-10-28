@@ -24,6 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->recordsListWidget, SIGNAL(currentRowChanged(int)), this, SLOT(show_record(int)));
     connect(ui->checkIsAlive, SIGNAL(clicked()), this, SLOT(disableDeathDate()));
 
+    //Перевод в стандартное состояние видимости
     ui->checkIsAlive->setChecked(true);
     updateButtonsActivity();
     disableDeathDate();
@@ -43,11 +44,13 @@ void MainWindow::save_record() //Изменение существующей з�
     curRec.setFIO(ui->FioEdit->text());
     curRec.setDateOfBirth(ui->dateEditBirthday->date());
     int newPos = searchInsertPos(curRec);
-    if(newPos == records.size() && newPos > 0)
-        newPos--;
 
-    records.move(previousIndex, newPos);
-    if(_save(newPos))
+    if(newPos - previousIndex == 1)//Расположение записи не изменилось
+        newPos = previousIndex;
+
+    records.move(previousIndex, newPos); //Изменение расположения записи в списке
+
+    if(_save(newPos)) //Если удалось сохранить, переместить на новую позицию в listWidget
     {
         ui->recordsListWidget->takeItem(previousIndex);
         addRecInListWidget(newPos);
@@ -55,10 +58,10 @@ void MainWindow::save_record() //Изменение существующей з�
         ui->recordsListWidget->setCurrentRow(newPos);
     }
     else
-        records.move(newPos, previousIndex);
+        records.move(newPos, previousIndex); //Если не удалось сохранить, откатить измение
 }
 
-void MainWindow::show_record(int i)
+void MainWindow::show_record(int i) //Отображение выбранной записи
 {
     if(i < records.size() && i >= 0) //Выбрана корректная строка
     {
@@ -80,28 +83,29 @@ void MainWindow::show_record(int i)
     }
 }
 
-void MainWindow::create_record()
+void MainWindow::create_record() //Создание новой записи
 {
-   FamilyTree curRec;
+   FamilyTree curRec; //Временный объект для поиска расположения
    curRec.setFIO(ui->FioEdit->text());
    curRec.setDateOfBirth(ui->dateEditBirthday->date());
-   int insertPos = searchInsertPos(curRec);
+   int insertPos = searchInsertPos(curRec); //Позиция вставки
+
    //Вставка новой записи в список
    records.insert(insertPos, curRec);
 
-   if(_save(insertPos, true))
+   if(_save(insertPos, true)) //Если удачное сохранение записи, то добавить в listWidget
    {
        addRecInListWidget(insertPos);
        ui->recordsListWidget->setCurrentRow(insertPos);
    }
-   else
+   else //Если сохранение не удалось, то освободить выделенную запись в списке
        records.removeAt(insertPos);
 
 
    updateButtonsActivity();
 }
 
-void MainWindow::delete_record()
+void MainWindow::delete_record() //Удаление записи
 {
     int deleteIndex = ui->recordsListWidget->currentRow();
 
@@ -118,11 +122,14 @@ void MainWindow::delete_record()
         ui->recordsListWidget->takeItem(childIndex);
         addRecInListWidget(childIndex);
     }
+
+    //Убрать из списка родителей
     if(records[deleteIndex].getGender() == MALE)
         ui->comboBoxFatherFio->removeItem(ui->comboBoxFatherFio->findText(records[deleteIndex].getFIO()));
     else
         ui->comboBoxMatherFio->removeItem(ui->comboBoxMatherFio->findText(records[deleteIndex].getFIO()));
 
+    //Удалить из списка и listWidget'а
     records.removeAt(deleteIndex);
     ui->recordsListWidget->takeItem(deleteIndex);
 
@@ -159,34 +166,43 @@ bool MainWindow::_save(int recordIndex, bool newRecord)
             ui->comboBoxMatherFio->addItem(tmpRec.getFIO());
 
     }
-    //Запись уже существует - изменить ФИО/Пол
+    //Запись уже существует, поменялся ФИО или Пол
     else if (!(getRecordsByFio(tmpRec.getFIO())) || !(records[recordIndex].getGender() == tmpRec.getGender()))
     {
         QString newFio = tmpRec.getFIO();
         int fioIndex;
 
-        if (records[recordIndex].getGender() == tmpRec.getGender()) //Изменилось ФИО
+        if (records[recordIndex].getGender() == tmpRec.getGender()) //Пол не изменился
         {
-
+            //Изменить ФИО списке родителей
             if(records[recordIndex].getGender() == Gender::MALE)
             {
-                for(int i = 0; i < records[recordIndex].getChilds().size(); i ++)
-                    records[recordIndex].getChilds()[i]->setFatherName(newFio);
                 fioIndex = ui->comboBoxFatherFio->findText(records[recordIndex].getFIO());
                 ui->comboBoxFatherFio->setItemText(fioIndex, newFio);
             }
             else
             {
-                for(int i = 0; i < records[recordIndex].getChilds().size(); i ++)
-                    records[recordIndex].getChilds()[i]->setMatherName(newFio);
                 fioIndex = ui->comboBoxMatherFio->findText(records[recordIndex].getFIO());
                 ui->comboBoxMatherFio->setItemText(fioIndex, newFio);
             }
-        }
-        else
-        {
-            if(records[recordIndex].getGender() == Gender::MALE) //Поменялся пол
+            //Изменить ФИО у детей
+            for(int i = 0; i < records[recordIndex].getChilds().size(); i ++)
             {
+                if(records[recordIndex].getGender() == MALE)
+                    records[recordIndex].getChilds()[i]->setFatherName(newFio);
+                else
+                    records[recordIndex].getChilds()[i]->setMatherName(newFio);
+
+               int childIndex = getRecordIndexByFio(records[recordIndex].getChilds()[i]->getFIO());
+               ui->recordsListWidget->takeItem(childIndex);
+               addRecInListWidget(childIndex);
+            }
+        }
+        else //Поменялся пол
+        {
+            if(records[recordIndex].getGender() == Gender::MALE)
+            {
+                //Переместить в другой комбобокс
                 fioIndex = ui->comboBoxFatherFio->findText(records[recordIndex].getFIO());
                 ui->comboBoxFatherFio->removeItem(fioIndex);
                 ui->comboBoxMatherFio->addItem(newFio);
@@ -196,7 +212,21 @@ bool MainWindow::_save(int recordIndex, bool newRecord)
                 fioIndex = ui->comboBoxMatherFio->findText(records[recordIndex].getFIO());
                 ui->comboBoxMatherFio->removeItem(fioIndex);
                 ui->comboBoxFatherFio->addItem(newFio);
+            }            
+            //Удалить имя записи из записей детей
+            for(int i = 0; i < records[recordIndex].getChilds().size(); i++)
+            {
+                int childIndex = getRecordIndexByFio(records[recordIndex].getChilds()[i]->getFIO());
+                if(records[recordIndex].getGender() == MALE)
+                    records[childIndex].setFatherName("none");
+                else
+                    records[childIndex].setMatherName("none");
+
+                //Убрать имя родителя из listWidget
+                ui->recordsListWidget->takeItem(childIndex);
+                addRecInListWidget(childIndex);
             }
+            records[recordIndex].getChilds().clear();
         }
     }
 
@@ -263,7 +293,7 @@ bool MainWindow::_save(int recordIndex, bool newRecord)
     return true;
 }
 
-int MainWindow::searchInsertPos(const FamilyTree &curRec)
+int MainWindow::searchInsertPos(const FamilyTree &curRec) //Поиск позиции в списке для вставки записи
 {
     int insertPos = 0;
     while (insertPos < records.size()) {
@@ -275,12 +305,12 @@ int MainWindow::searchInsertPos(const FamilyTree &curRec)
     return insertPos;
 }
 
-void MainWindow::disableDeathDate()
+void MainWindow::disableDeathDate() //Обновление видимости
 {
     ui->dateEditDeathday->setEnabled(!ui->checkIsAlive->isChecked());
 }
 
-FamilyTree* MainWindow::getRecordsByFio(const QString& fio)
+FamilyTree* MainWindow::getRecordsByFio(const QString& fio) //Получить указатель на запись по фио
 {
     for(int i = 0; i < records.size(); i++ )
         if(records[i].getFIO() == fio)
@@ -288,7 +318,7 @@ FamilyTree* MainWindow::getRecordsByFio(const QString& fio)
     return nullptr;
 }
 
-int MainWindow::getRecordIndexByFio(const QString& fio)
+int MainWindow::getRecordIndexByFio(const QString& fio) //Получить индекс записи в списке по фио
 {
     for(int i = 0; i < records.size(); i++ )
         if(records[i].getFIO() == fio)
@@ -296,7 +326,7 @@ int MainWindow::getRecordIndexByFio(const QString& fio)
     return -1;
 }
 
-bool MainWindow::correctRecordCheck(int recordIndex, const FamilyTree &tmpRec, bool newRecord)
+bool MainWindow::correctRecordCheck(int recordIndex, const FamilyTree &tmpRec, bool newRecord) //Провека записи
 {
     if(!ui->FioEdit->hasAcceptableInput())
     {
@@ -378,13 +408,13 @@ bool MainWindow::correctRecordCheck(int recordIndex, const FamilyTree &tmpRec, b
     return  true;
 }
 
-void MainWindow::updateButtonsActivity()
+void MainWindow::updateButtonsActivity() //Обновление состояние активности кнопок удаление и создания
 {
     ui->pushButtonSave->setEnabled(records.size() >= 1);
     ui->pushButtonDelete->setEnabled(records.size() >= 1);
 }
 
-void MainWindow::addRecInListWidget(int insertPos)
+void MainWindow::addRecInListWidget(int insertPos) //Добовляет запись в listWidget
 {
     QString rec;
     rec.append(records[insertPos].getFIO());
