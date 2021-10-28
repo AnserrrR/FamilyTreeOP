@@ -46,7 +46,7 @@ public:
     FamilyTree();
 
     //TO DO: Сделать перегрузку операторов сравнения, присвоения ...
-    bool operator<=(const FamilyTree& other) const;
+    bool operator<(const FamilyTree& other) const;
     void operator=(const FamilyTree& other);
 
     bool isCreated = false; //После того как разделю save на save и create можно убрать

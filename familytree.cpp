@@ -17,12 +17,12 @@ FamilyTree::~FamilyTree()
 {
 }
 
-bool FamilyTree::operator<=(const FamilyTree &other) const
+bool FamilyTree::operator<(const FamilyTree &other) const
 {
     if(m_DateOfBirth < other.m_DateOfBirth)
         return true;
     if(m_DateOfBirth == other.m_DateOfBirth)
-        if(m_FIO <= other.m_FIO)
+        if(m_FIO < other.m_FIO)
             return true;
     return false;
 }

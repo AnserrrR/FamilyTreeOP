@@ -24,6 +24,7 @@ public:
     bool _save(int recordIndex, bool newRecord = false);
     int searchInsertPos(const FamilyTree& curRec);
     FamilyTree* getRecordsByFio(const QString& fio);
+    int getRecordIndexByFio(const QString& fio);
     bool correctRecordCheck(int recordIndex, const FamilyTree& tmpRec, bool newRecord = false);
     void updateButtonsActivity();
     void addRecInListWidget(int insertPos);

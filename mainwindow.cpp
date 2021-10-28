@@ -11,11 +11,13 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     messageBox.setFixedSize(500,200);
 
+    //Валидатор для ФИО
     QRegularExpression rx("^[A-ЯЁ][а-яё]+ [A-ЯЁ][а-яё]+ [A-ЯЁ][а-яё]+$");
     fioValidator = new QRegularExpressionValidator(rx, this);
     ui->FioEdit->setValidator(fioValidator);
     ui->FioEdit->setMaxLength(MAX_FIO_LENGTH);
 
+    //Подсоединение сигналов
     connect(ui->pushButtonCreate, SIGNAL(clicked()), this, SLOT(create_record()));
     connect(ui->pushButtonSave, SIGNAL(clicked()), this, SLOT(save_record()));
     connect(ui->pushButtonDelete, SIGNAL(clicked()), this, SLOT(delete_record()));
@@ -32,13 +34,18 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::save_record()
+void MainWindow::save_record() //Изменение существующей записи
 {
-    int previousIndex = ui->recordsListWidget->currentRow();
+    int previousIndex = ui->recordsListWidget->currentRow(); //Индекс строки где находилась измениемая запись
+
+    //Поиск новой позиции
     FamilyTree curRec;
     curRec.setFIO(ui->FioEdit->text());
     curRec.setDateOfBirth(ui->dateEditBirthday->date());
     int newPos = searchInsertPos(curRec);
+    if(newPos == records.size() && newPos > 0)
+        newPos--;
+
     records.move(previousIndex, newPos);
     if(_save(newPos))
     {
@@ -53,7 +60,7 @@ void MainWindow::save_record()
 
 void MainWindow::show_record(int i)
 {
-    if(i < records.size() && i >= 0)
+    if(i < records.size() && i >= 0) //Выбрана корректная строка
     {
         int parentIndex = ui->comboBoxFatherFio->findText(records[i].getParents().fatherName);
         if (parentIndex > 0) ui->comboBoxFatherFio->setCurrentIndex(parentIndex);
@@ -98,12 +105,18 @@ void MainWindow::delete_record()
 {
     int deleteIndex = ui->recordsListWidget->currentRow();
 
+    //Удалить имя записи из записей детей
     for(int i = 0; i < records[deleteIndex].getChilds().size(); i++)
     {
+        int childIndex = getRecordIndexByFio(records[deleteIndex].getChilds()[i]->getFIO());
         if(records[deleteIndex].getGender() == MALE)
-            records[deleteIndex].getChilds()[i]->setFatherName("none");
+            records[childIndex].setFatherName("none");
         else
-            records[deleteIndex].getChilds()[i]->setMatherName("none");
+            records[childIndex].setMatherName("none");
+
+        //Убрать имя родителей из listWidget
+        ui->recordsListWidget->takeItem(childIndex);
+        addRecInListWidget(childIndex);
     }
     if(records[deleteIndex].getGender() == MALE)
         ui->comboBoxFatherFio->removeItem(ui->comboBoxFatherFio->findText(records[deleteIndex].getFIO()));
@@ -112,6 +125,10 @@ void MainWindow::delete_record()
 
     records.removeAt(deleteIndex);
     ui->recordsListWidget->takeItem(deleteIndex);
+
+    if(records.size() > deleteIndex)
+        ui->recordsListWidget->currentRowChanged(deleteIndex);
+
     updateButtonsActivity();
 }
 
@@ -183,31 +200,62 @@ bool MainWindow::_save(int recordIndex, bool newRecord)
         }
     }
 
-    //Сохранение составного поля родителей
-    QString parentName;
-    if(ui->comboBoxFatherFio->currentIndex()) //Был выбран отец из списка
+    //Сохранение составного поля родителей, если оно измененно
+    if(tmpRec.getParents().fatherName != records[recordIndex].getParents().fatherName)
     {
-        parentName = tmpRec.getParents().fatherName;
-        records[recordIndex].setFatherName(parentName);
 
-        //Сохранение этой записи как ребёнка у другой
-        bool newChild = true;
-        FamilyTree* parent = getRecordsByFio(parentName);
-        for (int i = 0 ; i < parent->getChilds().size(); i++)
-            newChild *= (&records[recordIndex] != parent->getChilds().at(i));
-        if (newChild) parent->getChilds().push_back(&records[recordIndex]);
+        QString parentName;
+
+
+        if(records[recordIndex].getParents().fatherName != "none") //Если до этого был выбран другой отец удалить запись из его списка детей
+        {
+            parentName = records[recordIndex].getParents().fatherName;
+            FamilyTree* parent = getRecordsByFio(parentName);
+            for(int i = 0; i < parent->getChilds().size(); i++)
+                if(parent->getChilds().at(i)->getFIO() == tmpRec.getFIO())
+                    parent->getChilds().removeAt(i);
+        }
+        if(ui->comboBoxFatherFio->currentIndex()) //Была выбрана запись
+        {
+            parentName = tmpRec.getParents().fatherName;
+            records[recordIndex].setFatherName(parentName);
+            FamilyTree* parent = getRecordsByFio(parentName);
+
+            //Сохранение этой записи как ребёнка у другой
+            bool newChild = true;
+            for (int i = 0 ; i < parent->getChilds().size(); i++)
+                newChild *= (&records[recordIndex] != parent->getChilds().at(i));
+            if (newChild) parent->getChilds().push_back(&records[recordIndex]);
+        }
+        else
+            records[recordIndex].setFatherName("none");
     }
-    if(ui->comboBoxMatherFio->currentIndex()) //Была выбрана мать из списка
+    if(tmpRec.getParents().matherName != records[recordIndex].getParents().matherName)
     {
-        parentName = tmpRec.getParents().matherName;
-        records[recordIndex].setMatherName(parentName);
+        QString parentName;
 
-        //Сохранение этой записи как ребёнка у другой
-        bool newChild = true;
-        FamilyTree* parent = getRecordsByFio(parentName);
-        for (int i = 0 ; i < parent->getChilds().size(); i++)
-            newChild *= (&records[recordIndex] != parent->getChilds().at(i));
-        if (newChild) parent->getChilds().push_back(&records[recordIndex]);
+        if(records[recordIndex].getParents().matherName != "none") //Если до этого был выбрана другая мать удалить запись из её списка детей
+        {
+            parentName = tmpRec.getParents().matherName;
+            FamilyTree* parent = getRecordsByFio(parentName);
+            for(int i = 0; i < parent->getChilds().size(); i++)
+                if(parent->getChilds().at(i)->getFIO() == tmpRec.getFIO())
+                    parent->getChilds().removeAt(i);
+        }
+        if(ui->comboBoxMatherFio->currentIndex()) //Была выбрана запись
+        {
+            parentName = tmpRec.getParents().matherName;
+            records[recordIndex].setMatherName(parentName);
+            FamilyTree* parent = getRecordsByFio(parentName);
+
+            //Сохранение этой записи как ребёнка у другой
+            bool newChild = true;
+            for (int i = 0 ; i < parent->getChilds().size(); i++)
+                newChild *= (&records[recordIndex] != parent->getChilds().at(i));
+            if (newChild) parent->getChilds().push_back(&records[recordIndex]);
+        }
+        else
+            records[recordIndex].setMatherName("none");
     }
 
     //Сохранение записи
@@ -219,10 +267,11 @@ int MainWindow::searchInsertPos(const FamilyTree &curRec)
 {
     int insertPos = 0;
     while (insertPos < records.size()) {
-        if(curRec <= records[insertPos])
+        if(curRec < records[insertPos])
             break;
         insertPos++;
     }
+
     return insertPos;
 }
 
@@ -237,6 +286,14 @@ FamilyTree* MainWindow::getRecordsByFio(const QString& fio)
         if(records[i].getFIO() == fio)
             return &records[i];
     return nullptr;
+}
+
+int MainWindow::getRecordIndexByFio(const QString& fio)
+{
+    for(int i = 0; i < records.size(); i++ )
+        if(records[i].getFIO() == fio)
+            return i;
+    return -1;
 }
 
 bool MainWindow::correctRecordCheck(int recordIndex, const FamilyTree &tmpRec, bool newRecord)
