@@ -6,6 +6,7 @@
 #include <QRegularExpressionValidator>
 #include <QMessageBox>
 #include "familytreedb.h"
+#include <QFileDialog>
 
 
 QT_BEGIN_NAMESPACE
@@ -19,8 +20,6 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
-    //void addRecInListWidget(int insertPos);
 
 private slots:
 
@@ -36,10 +35,10 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    //QList<FamilyTree> records;
     FamilyTreeDB recordsDB;
     QMessageBox messageBox;
     QValidator *fioValidator;
+    QString m_fileName;
 
     unsigned int getRecordID(int pos);
     const QString createListWidgetField(const FamilyTreeRecord& record);

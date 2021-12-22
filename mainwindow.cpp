@@ -278,11 +278,18 @@ unsigned int MainWindow::getRecordID(int pos)
 void MainWindow::on_createDbButton_clicked()
 {
 
+
 }
 
 void MainWindow::on_openDbButton_clicked()
 {
-
+    m_fileName = QFileDialog::getOpenFileName(this, tr("Открыть файл"), "", tr("Двоичный файл (*.bin)"));
+    recordsDB.load(m_fileName);
+    QVector<BrowserField> fields = recordsDB.records();
+    for (QVector<BrowserField>::const_iterator i = fields.constBegin(); i != fields.constEnd(); i++)
+    {
+        ui->recordsListWidget->addItem(i->fio);
+    }
 }
 
 void MainWindow::on_saveDbButton_clicked()
@@ -292,5 +299,7 @@ void MainWindow::on_saveDbButton_clicked()
 
 void MainWindow::on_saveAsDbButton_clicked()
 {
+    m_fileName = QFileDialog::getSaveFileName(this, tr("Сохранить файл"), "", tr("Двоичный файл (*.bin)"));
+    recordsDB.save(m_fileName);
 
 }

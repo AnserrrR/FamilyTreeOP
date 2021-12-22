@@ -169,6 +169,8 @@ const QVector<BrowserField> FamilyTreeDB::records() const //Получить с�
         field.id = i.key();
 
         QVector<BrowserField>::iterator j;
+        if(fields.size() == 0)
+            fields.push_back(field);
         for(j = fields.begin(); j != fields.end(); j++)
         {
             if(field.dateOfBirth < j->dateOfBirth)
