@@ -5,7 +5,7 @@
 #include <QDebug>
 #include <QRegularExpressionValidator>
 #include <QMessageBox>
-#include "familytree.h"
+#include "familytreedb.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -20,14 +20,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-
-    bool _save(int recordIndex, bool newRecord = false);
-    int searchInsertPos(const FamilyTree& curRec);
-    FamilyTree* getRecordsByFio(const QString& fio);
-    int getRecordIndexByFio(const QString& fio);
-    bool correctRecordCheck(int recordIndex, const FamilyTree& tmpRec, bool newRecord = false);
-    void updateButtonsActivity();
-    void addRecInListWidget(int insertPos);
+    //void addRecInListWidget(int insertPos);
 
 private slots:
 
@@ -35,13 +28,22 @@ private slots:
     void show_record(int i);
     void create_record();
     void delete_record();
-
     void disableDeathDate();
+    void on_createDbButton_clicked();
+    void on_openDbButton_clicked();
+    void on_saveDbButton_clicked();
+    void on_saveAsDbButton_clicked();
 
 private:
     Ui::MainWindow *ui;
-    QList<FamilyTree> records;
+    //QList<FamilyTree> records;
+    FamilyTreeDB recordsDB;
     QMessageBox messageBox;
     QValidator *fioValidator;
+
+    unsigned int getRecordID(int pos);
+    const QString createListWidgetField(const FamilyTreeRecord& record);
+    bool correctRecordCheck(const FamilyTreeRecord& tmpRec, bool newRecord = false);
+    void updateButtonsActivity();
 };
 #endif // MAINWINDOW_H

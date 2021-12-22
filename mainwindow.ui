@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>907</width>
-    <height>415</height>
+    <width>901</width>
+    <height>434</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -23,7 +23,7 @@
    <bool>false</bool>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <layout class="QHBoxLayout" name="horizontalLayout">
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
@@ -222,7 +222,7 @@
           <item>
            <widget class="QPushButton" name="pushButtonCreate">
             <property name="text">
-             <string>Создать</string>
+             <string>Создать запись</string>
             </property>
            </widget>
           </item>
@@ -242,6 +242,38 @@
           </item>
          </layout>
         </item>
+        <item>
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="0" column="0">
+           <widget class="QPushButton" name="createDbButton">
+            <property name="text">
+             <string>Создать древо</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QPushButton" name="saveDbButton">
+            <property name="text">
+             <string>Сохранить древо</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QPushButton" name="openDbButton">
+            <property name="text">
+             <string>Открыть</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QPushButton" name="saveAsDbButton">
+            <property name="text">
+             <string>Сохранить как</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
        </layout>
       </item>
      </layout>
@@ -253,7 +285,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>907</width>
+     <width>901</width>
      <height>20</height>
     </rect>
    </property>

@@ -1,8 +1,10 @@
-#ifndef FAMILYTREE_H
-#define FAMILYTREE_H
+#ifndef FAMILYTREERECORD_H
+#define FAMILYTREERECORD_H
+
 
 #include "QTextStream"
 #include <QDate>
+#include <QDataStream>
 
 enum Gender
 {
@@ -28,7 +30,7 @@ struct Parents
     QString matherName;
 };
 
-class FamilyTree
+class FamilyTreeRecord
 {
 private:
     QString m_FIO;
@@ -39,17 +41,19 @@ private:
     Gender m_gender;
     Country m_citizenship;
     bool m_wasInMilitaryService;
-    QList<FamilyTree*> m_childs;
+    QList<unsigned int> m_childs;
+    unsigned int m_id;
 
 
 public:
-    FamilyTree();
+    FamilyTreeRecord();
 
     //TO DO: Сделать перегрузку операторов сравнения, присвоения ...
-    bool operator<(const FamilyTree& other) const;
-    void operator=(const FamilyTree& other);
-
-    bool isCreated = false; //После того как разделю save на save и create можно убрать
+    bool operator<(const FamilyTreeRecord& other) const;
+    bool operator>(const FamilyTreeRecord& other) const;
+    void operator=(const FamilyTreeRecord& other);
+    friend QDataStream& operator<<(QDataStream& out, const FamilyTreeRecord& record);
+    friend QDataStream& operator>>(QDataStream& in, FamilyTreeRecord& record);
 
     const QString& getFIO() const;
     const Parents& getParents() const;
@@ -59,7 +63,8 @@ public:
     const Gender& getGender() const;
     const Country& getCitizenship() const;
     const bool& WasInMilitaryService() const;
-    QList<FamilyTree*>& getChilds();
+    const unsigned int getID() const;
+    QList<unsigned int>& getChilds();
 
     void setFIO(QString);
     void setFatherName(QString);
@@ -70,11 +75,11 @@ public:
     void setGender(Gender);
     void setCitizenship(Country);
     void setWasInMilitaryService(bool);
-    void setChild(FamilyTree*, int);
-    void addChild(FamilyTree*);
+    void setID(unsigned int id);
 
-    ~FamilyTree();
+    ~FamilyTreeRecord();
 };
 
 
-#endif // FAMILYTREE_H
+
+#endif // FAMILYTREERECORD_H
