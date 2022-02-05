@@ -13,6 +13,19 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
+struct BrowserFields //Структура полей; нужна для кнопки заполнить
+{
+    QString fio;
+    QDate dateOfBirth;
+    QDate dateOfDeath;
+    QString father_fio;
+    QString mather_fio;
+    bool isAlive;
+    bool slughil;
+    Gender gender;
+    Country country;
+};
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -28,21 +41,25 @@ private slots:
     void create_record();
     void delete_record();
     void disableDeathDate();
-    void on_createDbButton_clicked();
-    void on_openDbButton_clicked();
-    void on_saveDbButton_clicked();
-    void on_saveAsDbButton_clicked();
+    void closeEvent(QCloseEvent *event);
+    void on_fill_clicked();
+    void on_CreateDB_triggered();
+    void on_OpenDB_triggered();
+    void on_SaveDB_triggered();
+    void on_SaveAsDB_triggered();
 
 private:
     Ui::MainWindow *ui;
     FamilyTreeDB recordsDB;
     QMessageBox messageBox;
-    QValidator *fioValidator;
     QString m_fileName;
+    int maxFioLength = 0;
+    QList<BrowserFields> testRecords;
 
     unsigned int getRecordID(int pos);
     const QString createListWidgetField(const FamilyTreeRecord& record);
     bool correctRecordCheck(const FamilyTreeRecord& tmpRec, bool newRecord = false);
     void updateButtonsActivity();
+    void clearAllFields();
 };
 #endif // MAINWINDOW_H

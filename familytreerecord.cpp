@@ -1,6 +1,6 @@
 #include "familytreerecord.h"
 
-FamilyTreeRecord::FamilyTreeRecord()
+FamilyTreeRecord::FamilyTreeRecord() //Конструктор по умолчанию
 {
     m_FIO = "none";
     m_parents.fatherName = "none";
@@ -17,27 +17,27 @@ FamilyTreeRecord::~FamilyTreeRecord()
 {
 }
 
-bool FamilyTreeRecord::operator<(const FamilyTreeRecord &other) const
+bool FamilyTreeRecord::operator<(const FamilyTreeRecord &other) const //Перегрузка оператора меньше
 {
-    if(m_DateOfBirth < other.m_DateOfBirth)
+    if(m_DateOfBirth < other.m_DateOfBirth) //Сравнение дат рождения
         return true;
     if(m_DateOfBirth == other.m_DateOfBirth)
-        if(m_FIO < other.m_FIO)
+        if(m_FIO < other.m_FIO) //Сравнение фио, если даты рождения одинаковы
             return true;
     return false;
 }
 
-bool FamilyTreeRecord::operator>(const FamilyTreeRecord &other) const
+bool FamilyTreeRecord::operator>(const FamilyTreeRecord &other) const //Перегрузка оператора больше
 {
-    if(m_DateOfBirth > other.m_DateOfBirth)
+    if(m_DateOfBirth > other.m_DateOfBirth) //Сравнение дат рождения
             return true;
     if(m_DateOfBirth == other.m_DateOfBirth)
-        if(m_FIO > other.m_FIO)
+        if(m_FIO > other.m_FIO) //Сравнение фио, если даты рождения одинаковы
             return true;
     return false;
 }
 
-void FamilyTreeRecord::operator=(const FamilyTreeRecord &other)
+void FamilyTreeRecord::operator=(const FamilyTreeRecord &other) //Перегрузка оператора присвоения
 {
     m_FIO = other.m_FIO;
     m_DateOfBirth = other.m_DateOfBirth;
@@ -52,7 +52,7 @@ void FamilyTreeRecord::operator=(const FamilyTreeRecord &other)
     m_childs = other.m_childs;
 }
 
-QDataStream& operator<<(QDataStream& out, const FamilyTreeRecord& record)
+QDataStream& operator<<(QDataStream& out, const FamilyTreeRecord& record) //Перегрузка оператора вывода в поток
 {
     out << record.m_FIO << record.m_parents.fatherName << record.m_parents.matherName
         << record.m_DateOfBirth << record.m_isAlive << record.m_DateOfDeath
@@ -64,7 +64,7 @@ QDataStream& operator<<(QDataStream& out, const FamilyTreeRecord& record)
     return out;
 }
 
-QDataStream& operator>>(QDataStream& in, FamilyTreeRecord& record)
+QDataStream& operator>>(QDataStream& in, FamilyTreeRecord& record) //Перегрузка оператора ввода в поток
 {
     in >> record.m_FIO >> record.m_parents.fatherName >> record.m_parents.matherName
        >> record.m_DateOfBirth >> record.m_isAlive >> record.m_DateOfDeath
@@ -77,6 +77,7 @@ QDataStream& operator>>(QDataStream& in, FamilyTreeRecord& record)
     return in;
 }
 
+//Определение гетеров
 const QString& FamilyTreeRecord::getFIO()const{ return m_FIO;}
 const Parents& FamilyTreeRecord::getParents()const{return m_parents;}
 const QDate& FamilyTreeRecord::getDateOfBirth()const{return m_DateOfBirth;}
@@ -87,7 +88,7 @@ const Country& FamilyTreeRecord::getCitizenship()const{return m_citizenship;}
 const bool& FamilyTreeRecord::WasInMilitaryService()const{return m_wasInMilitaryService;}
 const unsigned int FamilyTreeRecord::getID() const { return m_id;}
 QList<unsigned int>& FamilyTreeRecord::getChilds(){ return m_childs;}
-
+//Определение сэттеров
 void FamilyTreeRecord::setFIO(QString newData){ m_FIO = newData;}
 void FamilyTreeRecord::setFatherName(QString newData){m_parents.fatherName = newData;}
 void FamilyTreeRecord::setMatherName(QString newData){m_parents.matherName = newData;}

@@ -11,6 +11,8 @@ struct BrowserField
     QDate dateOfBirth;
     QDate dateOfDeath;
     Parents parents;
+    bool isAlive;
+    Gender gender;
     unsigned int id;
 };
 

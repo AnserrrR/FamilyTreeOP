@@ -10,11 +10,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->setupUi(this);
     messageBox.setFixedSize(500,200);
+    setWindowIcon(QIcon(":/img/icons8-active-directory-100.png"));
 
     //Валидатор для ФИО
-    QRegularExpression rx("^[A-ЯЁ][а-яё]+ [A-ЯЁ][а-яё]+ [A-ЯЁ][а-яё]+$");
-    fioValidator = new QRegularExpressionValidator(rx, this);
-    ui->FioEdit->setValidator(fioValidator);
+    ui->FioEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("^[А-Я][а-я]+(-[А-Я][а-я]+)? [А-Я][а-я]+ [А-Я][а-я]+$")));
     ui->FioEdit->setMaxLength(MAX_FIO_LENGTH);
 
     //Подсоединение сигналов
@@ -28,6 +27,20 @@ MainWindow::MainWindow(QWidget *parent)
     ui->checkIsAlive->setChecked(true);
     updateButtonsActivity();
     disableDeathDate();
+
+    //10 готовых записей для тестирования
+    testRecords = {
+                   {"Корнилов Мечислав Нетисович", QDate(1801, 5, 3), QDate(1873, 5, 3), "none", "none", false, true, Gender::MALE, Country::RUSSIA},
+                   {"Михайлова Мила Богуславовна", QDate(1806, 12, 10), QDate(1884, 05, 17), "none", "none", false, false, Gender::FEMALE, Country::UKRAINE},
+                   {"Корнилова Каторина Мечиславовна", QDate(1836, 1, 18), QDate(1903, 2, 19), "Корнилов Мечислав Нетисович", "Михайлова Мила Богуславовна", false, false, Gender::FEMALE, Country::RUSSIA},
+                   {"Корнилов Артур Мечиславович", QDate(1834, 2, 1), QDate(1917, 2, 1), "Корнилов Мечислав Нетисович", "Михайлова Мила Богуславовна", false, true, Gender::MALE, Country::RUSSIA},
+                   {"Корнилов Елисей Мечиславович", QDate(1838, 5, 3), QDate(1921, 9, 9), "Корнилов Мечислав Нетисович", "Михайлова Мила Богуславовна", false, true, Gender::MALE, Country::RUSSIA},
+                   {"Соколова Арьяна Олеговна", QDate(1839, 7, 6), QDate(1925, 10, 7), "none", "none", false, false, Gender::FEMALE, Country::POLAND},
+                   {"Корнилова Ульяна Артуровна", QDate(1884, 3, 27), QDate(1944, 8, 3), "Корнилов Артур Мечиславович", "Соколова Арьяна Олеговна", false, false, Gender::FEMALE, Country::GERMANY},
+                   {"Корнилов Даниил Елисеевич", QDate(1861, 3, 3), QDate(1951, 8, 3), "Корнилов Елисей Мечиславович", "none", false, true, Gender::FEMALE, Country::RUSSIA},
+                   {"Сафонова Александрина Макаровна", QDate(1849, 4, 13), QDate(1930, 1, 6), "none", "none", false, false, Gender::FEMALE, Country::UKRAINE},
+                   {"Корнилов Богдан Даниилович", QDate(1890, 7, 15), QDate(1966, 8, 26), "Корнилов Даниил Елисеевич", "Сафонова Александрина Макаровна", false, false, Gender::MALE, Country::RUSSIA}
+                  };
 }
 
 MainWindow::~MainWindow()
@@ -38,9 +51,9 @@ MainWindow::~MainWindow()
 void MainWindow::save_record() //Изменение существующей записи
 {
     int pos = ui->recordsListWidget->currentRow(); //Индекс строки где находилась изменяемая запись
-    unsigned int recordID = getRecordID(pos);
+    unsigned int recordID = getRecordID(pos); //Получить айди записи
     FamilyTreeRecord previosVersion;
-    recordsDB.record(recordID, previosVersion);
+    recordsDB.record(recordID, previosVersion); //Получить предыдущую версию записи
 
     //Текущее состояние полей
     FamilyTreeRecord tmpRec;
@@ -55,11 +68,8 @@ void MainWindow::save_record() //Изменение существующей з�
     tmpRec.setWasInMilitaryService(ui->checkSlughil->isChecked());
     tmpRec.setID(recordID);
 
-    if(!correctRecordCheck(tmpRec))
+    if(!correctRecordCheck(tmpRec)) //Проверка на корректность новой версии записи
         return;
-
-//    if(newPos - previousIndex == 1)//Расположение записи не изменилось
-//        newPos = previousIndex;
 
     if(tmpRec.getFIO() != previosVersion.getFIO()) //Если изменилось имя, обновить его в списке родителей
     {
@@ -93,21 +103,23 @@ void MainWindow::save_record() //Изменение существующей з�
     }
 
     QList<QString> childrenFields; //Контейнер с копиями полей детей для последующего поиска их позиций в браузере
-    for(QList<unsigned int>::iterator i = tmpRec.getChilds().begin(); i != tmpRec.getChilds().end(); i++)
+    for(QList<unsigned int>::iterator i = previosVersion.getChilds().begin(); i != previosVersion.getChilds().end(); i++)
     {
         FamilyTreeRecord child;
         recordsDB.record(*i, child);
         childrenFields.push_back(createListWidgetField(child));
     }
 
-    int newPos = recordsDB.update(tmpRec);
+    int newPos = recordsDB.update(tmpRec); //Получить новую позицию
     recordsDB.record(recordID, tmpRec);
 
+    //Поставить в новую позицию
     ui->recordsListWidget->takeItem(pos);
     ui->recordsListWidget->insertItem(newPos, createListWidgetField(tmpRec));
     ui->recordsListWidget->setCurrentRow(newPos);
 
-    for(QList<unsigned int>::iterator i = tmpRec.getChilds().begin(); i != tmpRec.getChilds().end(); i++)
+    //Обновить поля детей в браузере
+    for(QList<unsigned int>::iterator i = previosVersion.getChilds().begin(); i != previosVersion.getChilds().end(); i++)
     {
         FamilyTreeRecord child;
         recordsDB.record(*i, child);
@@ -123,6 +135,7 @@ void MainWindow::show_record(int i) //Отображение выбранной 
     if(i < recordsDB.count() && i >= 0) //Выбрана корректная строка
     {
         recordsDB.record(getRecordID(i), record);
+        //Установить комбобокс родителей
         int parentIndex = ui->comboBoxFatherFio->findText(record.getParents().fatherName);
         if (parentIndex > 0) ui->comboBoxFatherFio->setCurrentIndex(parentIndex);
         else ui->comboBoxFatherFio->setCurrentIndex(0);
@@ -130,6 +143,7 @@ void MainWindow::show_record(int i) //Отображение выбранной 
         if (parentIndex > 0) ui->comboBoxMatherFio->setCurrentIndex(parentIndex);
         else ui->comboBoxMatherFio->setCurrentIndex(0);
 
+        //Заполнить оставшиеся поля
         ui->FioEdit->setText(record.getFIO());
         ui->dateEditBirthday->setDate(record.getDateOfBirth());
         ui->checkIsAlive->setChecked(record.isAlive());
@@ -143,6 +157,7 @@ void MainWindow::show_record(int i) //Отображение выбранной 
 
 void MainWindow::create_record() //Создание новой записи
 {
+    //Заполнить временную запись
     FamilyTreeRecord tmpRec;
     tmpRec.setFIO(ui->FioEdit->text());
     tmpRec.setFatherName(ui->comboBoxFatherFio->currentText());
@@ -154,17 +169,19 @@ void MainWindow::create_record() //Создание новой записи
     tmpRec.setCitizenship(static_cast<Country>(ui->comboBoxCitizenship->currentIndex()));
     tmpRec.setWasInMilitaryService(ui->checkSlughil->isChecked());
 
-    if(!correctRecordCheck(tmpRec, true))
+    if(!correctRecordCheck(tmpRec, true)) //Проверка корректности записи
         return;
 
+    //Добавить в комбобокс родителей
     if(tmpRec.getGender() == Gender::MALE)
         ui->comboBoxFatherFio->addItem(tmpRec.getFIO());
     else
         ui->comboBoxMatherFio->addItem(tmpRec.getFIO());
 
+    //Сохранить в контейнер
    int insertPos = recordsDB.append(tmpRec);
    recordsDB.record(tmpRec.getID(), tmpRec);
-
+    //Добавить в браузер
    ui->recordsListWidget->insertItem(insertPos, createListWidgetField(tmpRec));
    ui->recordsListWidget->setCurrentRow(insertPos);
 
@@ -175,6 +192,7 @@ void MainWindow::create_record() //Создание новой записи
 void MainWindow::delete_record() //Удаление записи
 {
     int deleteIndex = ui->recordsListWidget->currentRow();
+    if (deleteIndex == -1) return;
     unsigned int recordID = getRecordID(deleteIndex);
     FamilyTreeRecord tmpRec;
     recordsDB.record(recordID, tmpRec);
@@ -199,6 +217,7 @@ void MainWindow::delete_record() //Удаление записи
     recordsDB.remove(recordID);
     QList<unsigned int> childrens = tmpRec.getChilds();
 
+    //Обновить поля браузера детей
     for(QList<unsigned int>::iterator i = childrens.begin(); i != childrens.end(); i++)
     {
         FamilyTreeRecord child;
@@ -245,19 +264,20 @@ const QString MainWindow::createListWidgetField(const FamilyTreeRecord& record) 
     QString rec;
     rec.append(QString::number(record.getID()));
     rec.append(". ");
-    rec.append(record.getFIO());
-    rec.append('\t');
+    if(maxFioLength < record.getFIO().size()) maxFioLength = record.getFIO().size();
+    rec.append(record.getFIO().leftJustified(maxFioLength, ' '));
+    rec.append(" \t");
     rec.append(record.getDateOfBirth().toString("dd.MM.yyyy"));
-    rec.append('\t');
+    rec.append(" - ");
     if(record.isAlive())
     {
         rec.append(QString("--.--.----"));
-        rec.append('\t');
+        rec.append("\t\t");
     }
     else
     {
         rec.append(record.getDateOfDeath().toString("dd.MM.yyyy"));
-        rec.append('\t');
+        rec.append("\t\t");
     }
     if(record.getParents().fatherName != "none")
         rec.append(record.getParents().fatherName);
@@ -269,37 +289,125 @@ const QString MainWindow::createListWidgetField(const FamilyTreeRecord& record) 
     return rec;
 }
 
-unsigned int MainWindow::getRecordID(int pos)
+unsigned int MainWindow::getRecordID(int pos) //получение ID записи по её позиции в браузере
 {
     QString tmpStr = ui->recordsListWidget->item(pos)->text();
     return tmpStr.split('.').first().toInt();
 }
 
-void MainWindow::on_createDbButton_clicked()
+void MainWindow::clearAllFields() //Очстить все поля редактора
 {
-
-
+    ui->FioEdit->clear();
+    ui->dateEditBirthday->setDate(QDate(2000, 1, 1));
+    ui->checkIsAlive->setChecked(true);
+    disableDeathDate();
+    ui->dateEditDeathday->setDate(QDate(2000, 1, 1));
+    ui->comboBoxGender->setCurrentIndex(0);
+    ui->comboBoxCitizenship->setCurrentIndex(0);
+    ui->checkSlughil->setChecked(false);
+    ui->recordsListWidget->clear();
 }
 
-void MainWindow::on_openDbButton_clicked()
+void MainWindow::closeEvent(QCloseEvent *event) //Обработка выхода из приложения
 {
-    m_fileName = QFileDialog::getOpenFileName(this, tr("Открыть файл"), "", tr("Двоичный файл (*.bin)"));
-    recordsDB.load(m_fileName);
-    QVector<BrowserField> fields = recordsDB.records();
-    for (QVector<BrowserField>::const_iterator i = fields.constBegin(); i != fields.constEnd(); i++)
+    if(recordsDB.isModified()) //Сохранить БД, если необходимо
+        if(QMessageBox::question(this, "Выход...", "Хотите сохранить файл перед выходом?", QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
+            on_SaveDB_triggered();
+}
+
+void MainWindow::on_fill_clicked() //Заполнить десятью готовыми записями
+{
+    QList<BrowserFields>::const_iterator i;
+    for(i = testRecords.begin(); i != testRecords.end(); i++)
     {
-        ui->recordsListWidget->addItem(i->fio);
+        int parentIndex = ui->comboBoxFatherFio->findText(i->father_fio); //Заполнение полей из массива готовых записей
+        if (parentIndex > 0) ui->comboBoxFatherFio->setCurrentIndex(parentIndex);
+        else ui->comboBoxFatherFio->setCurrentIndex(0);
+        parentIndex = ui->comboBoxMatherFio->findText(i->mather_fio);
+        if (parentIndex > 0) ui->comboBoxMatherFio->setCurrentIndex(parentIndex);
+        else ui->comboBoxMatherFio->setCurrentIndex(0);
+
+        ui->FioEdit->setText(i->fio);
+        ui->dateEditBirthday->setDate(i->dateOfBirth);
+        ui->checkIsAlive->setChecked(i->isAlive);
+        disableDeathDate();
+        ui->dateEditDeathday->setDate(i->dateOfDeath);
+        ui->comboBoxGender->setCurrentIndex(static_cast<int>(i->gender));
+        ui->comboBoxCitizenship->setCurrentIndex(static_cast<int>(i->country));
+        ui->checkSlughil->setChecked(i->slughil);
+
+        create_record(); //создание записи на основе полей
     }
+
 }
 
-void MainWindow::on_saveDbButton_clicked()
+void MainWindow::on_CreateDB_triggered()
 {
-
+    if(recordsDB.isModified()) //сохранить предыдущее дерево
+        if(QMessageBox::question(this, "Сохранение", "Сохранить текущий файл?", QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
+            on_SaveDB_triggered();
+    recordsDB.clear(); //очистить поля и браузер
+    clearAllFields();
 }
 
-void MainWindow::on_saveAsDbButton_clicked()
+void MainWindow::on_OpenDB_triggered()
+{
+    if(recordsDB.isModified()) //Сохранить текущую, если нужно
+        if(QMessageBox::question(this, "Сохранение", "Сохранить текущий файл?", QMessageBox::Yes|QMessageBox::No) == QMessageBox::Yes)
+            on_SaveDB_triggered();
+
+    m_fileName = QFileDialog::getOpenFileName(this, tr("Открыть файл"), "", tr("Двоичный файл (*.bin)"));
+    if(recordsDB.load(m_fileName)) //загрузить в контейнер
+    {
+        //зполнить поля бруезра
+        clearAllFields();
+        QVector<BrowserField> fields = recordsDB.records();
+        for (QVector<BrowserField>::const_iterator i = fields.constBegin(); i != fields.constEnd(); i++)
+        {
+            QString rec;
+            rec.append(QString::number(i->id));
+            rec.append(". ");
+            if(maxFioLength < i->fio.size()) maxFioLength = i->fio.size();
+            rec.append(i->fio.leftJustified(maxFioLength, ' '));
+            rec.append(" \t");
+            rec.append(i->dateOfBirth.toString("dd.MM.yyyy"));
+            rec.append(" - ");
+            if(i->isAlive)
+            {
+                rec.append(QString("--.--.----"));
+                rec.append("\t\t");
+            }
+            else
+            {
+                rec.append(i->dateOfDeath.toString("dd.MM.yyyy"));
+                rec.append("\t\t");
+            }
+            if(i->parents.fatherName != "none")
+                rec.append(i->parents.fatherName);
+            if(i->parents.fatherName != "none" && (i->parents.matherName != "none"))
+                rec.append(", ");
+            if(i->parents.matherName != "none")
+                rec.append(i->parents.matherName);
+            ui->recordsListWidget->addItem(rec);
+
+            if(i->gender == Gender::MALE)
+                ui->comboBoxFatherFio->addItem(i->fio);
+            else
+                ui->comboBoxMatherFio->addItem(i->fio);
+        }
+
+    }
+    updateButtonsActivity();
+}
+
+void MainWindow::on_SaveDB_triggered()
+{
+    if(!recordsDB.save(m_fileName)) //если не выбран файл - сохранить как
+        on_SaveAsDB_triggered();
+}
+
+void MainWindow::on_SaveAsDB_triggered()
 {
     m_fileName = QFileDialog::getSaveFileName(this, tr("Сохранить файл"), "", tr("Двоичный файл (*.bin)"));
     recordsDB.save(m_fileName);
-
 }

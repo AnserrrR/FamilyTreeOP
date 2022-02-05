@@ -1,4 +1,5 @@
 #include "familytreedb.h"
+#include "QDebug"
 
 bool FamilyTreeDB::modifiedFlag;
 
@@ -56,7 +57,7 @@ void FamilyTreeDB::remove(unsigned int id) //Удалить запись
     //Удалить имя записи из записей детей
     for(QList<unsigned int>::iterator i = DB[id].getChilds().begin(); i != DB[id].getChilds().end(); i++)
     {
-        if(DB[*i].getGender() == MALE)
+        if(DB[id].getGender() == MALE)
             DB[*i].setFatherName("none");
         else
             DB[*i].setMatherName("none");
@@ -133,12 +134,13 @@ int FamilyTreeDB::update(const FamilyTreeRecord &record) //Обновить за
         }
     }
 
-    DB[recordID] = record;
+    DB[recordID] = record; //Сохранить запись
     if(DB[recordID].getParents().matherName == "не задана")
         DB[recordID].setMatherName("none");
     if(DB[recordID].getParents().fatherName == "не задан")
         DB[recordID].setFatherName("none");
 
+    //Получить новую позицию в браузере
     int insertPos = 0;
     QHash<unsigned int, FamilyTreeRecord>::const_iterator i;
     for(i = DB.constBegin(); i != DB.constEnd(); i++)
@@ -159,19 +161,20 @@ const QVector<BrowserField> FamilyTreeDB::records() const //Получить с�
     QVector<BrowserField> fields;
 
     QHash<unsigned int, FamilyTreeRecord>::const_iterator i;
-    for(i = DB.constBegin(); i != DB.constEnd(); i++)
+    for(i = DB.constBegin(); i != DB.constEnd(); i++) //Заполнить и отсортировать вектор по порядку их расположения в браузере
     {
+        //Получить временную запись
         BrowserField field;
         field.fio = i->getFIO();
         field.dateOfBirth = i->getDateOfBirth();
         field.dateOfDeath = i->getDateOfDeath();
         field.parents = i->getParents();
         field.id = i.key();
+        field.isAlive = i->isAlive();
+        field.gender = i->getGender();
 
         QVector<BrowserField>::iterator j;
-        if(fields.size() == 0)
-            fields.push_back(field);
-        for(j = fields.begin(); j != fields.end(); j++)
+        for(j = fields.begin(); j != fields.end(); j++) //Найти для записи место в векторе
         {
             if(field.dateOfBirth < j->dateOfBirth)
             {
@@ -184,8 +187,13 @@ const QVector<BrowserField> FamilyTreeDB::records() const //Получить с�
                 break;
             }
             else if(j == fields.end() - 1)
+            {
                 fields.push_back(field);
+                break;
+            }
         }
+        if(fields.size() == 0)
+            fields.push_back(field);
     }
     return fields;
 }
@@ -226,6 +234,7 @@ bool FamilyTreeDB::load(QString filename) //Загрузить базу из ф�
 void FamilyTreeDB::clear() //Очистить базу
 {
     DB.clear();
+    modifiedFlag = false;
     idCounter = 1;
 }
 
@@ -234,7 +243,7 @@ bool FamilyTreeDB::isModified() //Обновлялась ли база
     return modifiedFlag;
 }
 
-const QString FamilyTreeDB::recordVerification(const FamilyTreeRecord &verifiableRecord, bool newRecord)
+const QString FamilyTreeDB::recordVerification(const FamilyTreeRecord &verifiableRecord, bool newRecord) //Проверка корректности записи
 {
     unsigned int recordID = 0;
     if(!newRecord)
@@ -287,7 +296,7 @@ const QString FamilyTreeDB::recordVerification(const FamilyTreeRecord &verifiabl
     return  QString();
 }
 
-unsigned int FamilyTreeDB::getRecordByFio(const QString &fio) const
+unsigned int FamilyTreeDB::getRecordByFio(const QString &fio) const //Получить айди записи по фио
 {
     for(QHash<unsigned int, FamilyTreeRecord>::const_iterator i = DB.constBegin(); i != DB.constEnd(); i++)
         if(i.value().getFIO() == fio)

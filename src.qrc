@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/img">
+        <file>icons8-active-directory-100.png</file>
+    </qresource>
+</RCC>
