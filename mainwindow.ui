@@ -287,7 +287,7 @@
      <x>0</x>
      <y>0</y>
      <width>1020</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
@@ -299,7 +299,15 @@
     <addaction name="SaveDB"/>
     <addaction name="SaveAsDB"/>
    </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>Тема</string>
+    </property>
+    <addaction name="lightTheme"/>
+    <addaction name="darkTheme"/>
+   </widget>
    <addaction name="menu"/>
+   <addaction name="menu_2"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="CreateDB">
@@ -320,6 +328,16 @@
   <action name="SaveAsDB">
    <property name="text">
     <string>Сохранить как</string>
+   </property>
+  </action>
+  <action name="lightTheme">
+   <property name="text">
+    <string>Светлая</string>
+   </property>
+  </action>
+  <action name="darkTheme">
+   <property name="text">
+    <string>Тёмная</string>
    </property>
   </action>
  </widget>

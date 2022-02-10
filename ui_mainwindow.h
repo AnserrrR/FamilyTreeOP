@@ -39,6 +39,8 @@ public:
     QAction *OpenDB;
     QAction *SaveDB;
     QAction *SaveAsDB;
+    QAction *lightTheme;
+    QAction *darkTheme;
     QWidget *centralwidget;
     QHBoxLayout *horizontalLayout;
     QHBoxLayout *horizontalLayout_3;
@@ -70,6 +72,7 @@ public:
     QPushButton *fill;
     QMenuBar *menubar;
     QMenu *menu;
+    QMenu *menu_2;
     QStatusBar *statusbar;
 
     void setupUi(QMainWindow *MainWindow)
@@ -87,6 +90,10 @@ public:
         SaveDB->setObjectName(QString::fromUtf8("SaveDB"));
         SaveAsDB = new QAction(MainWindow);
         SaveAsDB->setObjectName(QString::fromUtf8("SaveAsDB"));
+        lightTheme = new QAction(MainWindow);
+        lightTheme->setObjectName(QString::fromUtf8("lightTheme"));
+        darkTheme = new QAction(MainWindow);
+        darkTheme->setObjectName(QString::fromUtf8("darkTheme"));
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
         horizontalLayout = new QHBoxLayout(centralwidget);
@@ -254,19 +261,24 @@ public:
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));
-        menubar->setGeometry(QRect(0, 0, 1020, 20));
+        menubar->setGeometry(QRect(0, 0, 1020, 21));
         menu = new QMenu(menubar);
         menu->setObjectName(QString::fromUtf8("menu"));
+        menu_2 = new QMenu(menubar);
+        menu_2->setObjectName(QString::fromUtf8("menu_2"));
         MainWindow->setMenuBar(menubar);
         statusbar = new QStatusBar(MainWindow);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));
         MainWindow->setStatusBar(statusbar);
 
         menubar->addAction(menu->menuAction());
+        menubar->addAction(menu_2->menuAction());
         menu->addAction(CreateDB);
         menu->addAction(OpenDB);
         menu->addAction(SaveDB);
         menu->addAction(SaveAsDB);
+        menu_2->addAction(lightTheme);
+        menu_2->addAction(darkTheme);
 
         retranslateUi(MainWindow);
 
@@ -280,6 +292,8 @@ public:
         OpenDB->setText(QCoreApplication::translate("MainWindow", "\320\236\321\202\320\272\321\200\321\213\321\202\321\214", nullptr));
         SaveDB->setText(QCoreApplication::translate("MainWindow", "\320\241\320\276\321\205\321\200\320\275\320\270\321\202\321\214", nullptr));
         SaveAsDB->setText(QCoreApplication::translate("MainWindow", "\320\241\320\276\321\205\321\200\320\260\320\275\320\270\321\202\321\214 \320\272\320\260\320\272", nullptr));
+        lightTheme->setText(QCoreApplication::translate("MainWindow", "\320\241\320\262\320\265\321\202\320\273\320\260\321\217", nullptr));
+        darkTheme->setText(QCoreApplication::translate("MainWindow", "\320\242\321\221\320\274\320\275\320\260\321\217", nullptr));
         labelFio->setText(QCoreApplication::translate("MainWindow", "\320\244\320\230\320\236:", nullptr));
         groupBox->setTitle(QCoreApplication::translate("MainWindow", "\320\240\320\276\320\264\320\270\321\202\320\265\320\273\320\270", nullptr));
         labelFather->setText(QCoreApplication::translate("MainWindow", "\320\236\321\202\320\265\321\206:", nullptr));
@@ -311,6 +325,7 @@ public:
         pushButtonSave->setText(QCoreApplication::translate("MainWindow", "\320\241\320\276\321\205\321\200\320\260\320\275\320\270\321\202\321\214", nullptr));
         fill->setText(QCoreApplication::translate("MainWindow", "\320\227\320\260\320\277\320\276\320\273\320\275\320\270\321\202\321\214", nullptr));
         menu->setTitle(QCoreApplication::translate("MainWindow", "\320\244\320\260\320\271\320\273", nullptr));
+        menu_2->setTitle(QCoreApplication::translate("MainWindow", "\320\242\320\265\320\274\320\260", nullptr));
     } // retranslateUi
 
 };

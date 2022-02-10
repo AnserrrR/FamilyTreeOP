@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QStyleFactory>
 
 #define MAX_FIO_LENGTH 45
 
@@ -27,6 +28,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->checkIsAlive->setChecked(true);
     updateButtonsActivity();
     disableDeathDate();
+
+    qApp->setStyle(QStyleFactory::create("Fusion"));
+    on_darkTheme_triggered();
 
     //10 готовых записей для тестирования
     testRecords = {
@@ -411,3 +415,36 @@ void MainWindow::on_SaveAsDB_triggered()
     m_fileName = QFileDialog::getSaveFileName(this, tr("Сохранить файл"), "", tr("Двоичный файл (*.bin)"));
     recordsDB.save(m_fileName);
 }
+
+void MainWindow::on_lightTheme_triggered()
+{
+    // Для возврата к светлой палитре достаточно
+    // будет установить стандартную палитру из темы оформления
+    qApp->setPalette(style()->standardPalette());
+}
+
+
+void MainWindow::on_darkTheme_triggered()
+{
+    // Создаём палитру для тёмной темы оформления
+    QPalette darkPalette;
+
+    // Настраиваем палитру для цветовых ролей элементов интерфейса
+    darkPalette.setColor(QPalette::Window, QColor(53, 53, 53));
+    darkPalette.setColor(QPalette::WindowText, Qt::white);
+    darkPalette.setColor(QPalette::Base, QColor(25, 25, 25));
+    darkPalette.setColor(QPalette::AlternateBase, QColor(53, 53, 53));
+    darkPalette.setColor(QPalette::ToolTipBase, Qt::white);
+    darkPalette.setColor(QPalette::ToolTipText, Qt::white);
+    darkPalette.setColor(QPalette::Text, Qt::white);
+    darkPalette.setColor(QPalette::Button, QColor(53, 53, 53));
+    darkPalette.setColor(QPalette::ButtonText, Qt::white);
+    darkPalette.setColor(QPalette::BrightText, Qt::red);
+    darkPalette.setColor(QPalette::Link, QColor(42, 130, 218));
+    darkPalette.setColor(QPalette::Highlight, QColor(42, 130, 218));
+    darkPalette.setColor(QPalette::HighlightedText, Qt::black);
+
+    // Устанавливаем данную палитру
+    qApp->setPalette(darkPalette);
+}
+

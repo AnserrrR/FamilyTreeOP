@@ -48,6 +48,10 @@ private slots:
     void on_SaveDB_triggered();
     void on_SaveAsDB_triggered();
 
+    void on_lightTheme_triggered();
+
+    void on_darkTheme_triggered();
+
 private:
     Ui::MainWindow *ui;
     FamilyTreeDB recordsDB;
